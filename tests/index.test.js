@@ -47,4 +47,24 @@ describe("Authentication", () => {
 
     expect(response.statusCode).toBe(400);
   });
+
+  //for singin endpoints
+
+  test("Signin succeeds if the username and password are correct", async () => {
+    const username = `jatin-${Math.random()}`;
+    const password = "123456";
+
+    await axios.post(`${BACKEND_URL}/api/v1/signup`, {
+      username,
+      password,
+    });
+
+    const response = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
+      username,
+      password,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.token).toBeDefined();
+  });
 });
