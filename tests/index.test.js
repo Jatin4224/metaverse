@@ -67,4 +67,19 @@ describe("Authentication", () => {
     expect(response.statusCode).toBe(200);
     expect(response.body.token).toBeDefined();
   });
+
+  test("SignIn fails if the username and password are incorrect", async () => {
+    const username = `jatin-${Math.random()}`;
+    const password = 123456;
+
+    await axios.post(`${BACKEND_URL}/api/v1/signup`);
+
+    const response = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
+      username: "WrongUsername",
+      password,
+    });
+    //
+    // The HTTP status code 403 means "Forbidden". This status code is part of the 4xx class of client error responses and indicates that the server understands the request but refuses to authorize it.
+    expect(response.statusCode).toBe(403);
+  });
 });
