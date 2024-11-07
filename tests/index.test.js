@@ -83,3 +83,36 @@ describe("Authentication", () => {
     expect(response.statusCode).toBe(403);
   });
 });
+
+//
+// In Jest, the beforeAll and beforeEach functions are setup functions used to run specific code before tests execute.
+describe("User information endpoints", () => {
+  let token = "";
+
+  beforeAll(async () => {
+    const username = `jatin-${Math.random()}`;
+    const password = "123456";
+
+    await axios.post(`${BACKEND_URL}/api/v1/signup`, {
+      username,
+      password,
+      type: "admin",
+    });
+
+    const response = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
+      username,
+      password,
+    });
+
+    token = response.data.token;
+  });
+
+  test("user cant update their metadata with a wrong avatar id", async () => {
+    const response = await axios.post(`${BACKEND_URL}/api/v1/user/metadata`, {
+      avatarId: "123123123",
+    });
+    expect(response.statusCode).toBe(400);
+  });
+  test("test 2", () => {});
+  test("test 3", () => {});
+});
