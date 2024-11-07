@@ -88,7 +88,7 @@ describe("Authentication", () => {
 
 //
 // In Jest, the beforeAll and beforeEach functions are setup functions used to run specific code before tests execute.
-describe("User information endpoints", () => {
+describe("User metadata endpoints", () => {
   //globalvariable
   let token = "";
   let avatarId = "";
