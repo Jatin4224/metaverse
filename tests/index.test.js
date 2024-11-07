@@ -1,3 +1,5 @@
+const { default: axios } = require("axios");
+
 function sum(a, b) {
   return a + b;
 }
@@ -87,7 +89,9 @@ describe("Authentication", () => {
 //
 // In Jest, the beforeAll and beforeEach functions are setup functions used to run specific code before tests execute.
 describe("User information endpoints", () => {
+  //globalvariable
   let token = "";
+  let avatarId = "";
 
   beforeAll(async () => {
     const username = `jatin-${Math.random()}`;
@@ -105,14 +109,55 @@ describe("User information endpoints", () => {
     });
 
     token = response.data.token;
+
+    //getting avatar id
+
+    const avatarResponse = await axios.post(`${BACKEND_URL}/api/v1/avatar`, {
+      imageUrl:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm3RFDZM21teuCMFYx_AROjt-AzUwDBROFww&s",
+      name: "Timmy",
+    });
+
+    avatarId = avatarResponse.data.avatarId;
   });
 
+  //test case (1) - wrong avatar id case
   test("user cant update their metadata with a wrong avatar id", async () => {
-    const response = await axios.post(`${BACKEND_URL}/api/v1/user/metadata`, {
-      avatarId: "123123123",
-    });
+    const response = await axios.post(
+      `${BACKEND_URL}/api/v1/user/metadata`,
+      {
+        avatarId: "123123123",
+      },
+      {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      }
+    );
     expect(response.statusCode).toBe(400);
   });
-  test("test 2", () => {});
-  test("test 3", () => {});
+  //test case (2)- success case
+  test("User can update their  metadata with thte right avatar id", async () => {
+    const response = await axios.post(
+      `${BACKEND_URL}/api/v1/user/metadata`,
+      {
+        avatarId, //js shorthand syntax wwe can also write avatarId:avatarId
+      },
+      {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    expect(response.statusCode).toBe(200);
+  });
+
+  //test case (3) - if user does not provide auth.
+
+  test("User is not able to update their metadta if the auth header is not present", async () => {
+    const response = await axios.post(`${BACKEND_URL}/api/v1/user/metadata`, {
+      avatarId,
+    });
+    expect(response.statusCode).toBe(200);
+  });
 });
