@@ -220,3 +220,106 @@ describe("User avatar information", () => {
     //we not need token here before both this endpoints are authenticated
   });
 });
+
+describe("Space avatar information", () => {
+  let mapId;
+  let element1Id;
+  let element2Id;
+  let token;
+  let userId;
+
+  beforeAll(async () => {
+    const username = `jatin-${Math.random()}`;
+    const password = "123456";
+
+    await axios.post(`${BACKEND_URL}/api/v1/signup`, {
+      username,
+      password,
+      type: "admin",
+    });
+
+    //getting userID
+    const signUpResponse = await axios.post(`${BACKEND_URL}/api/v1/signup`, {
+      username,
+      password,
+      type: "admin",
+    });
+
+    userId = signUpResponse.data.userId;
+
+    const response = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
+      username,
+      password,
+    });
+
+    token = response.data.token;
+
+    const element1 = await axios.post(
+      `${BACKEND_URL}/api/v1/admin/element`,
+
+      {
+        imageUrl:
+          "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRCRca3wAR4zjPPTzeIY9rSwbbqB6bB2hVkoTXN4eerXOIkJTG1GpZ9ZqSGYafQPToWy_JTcmV5RHXsAsWQC3tKnMlH_CsibsSZ5oJtbakq&usqp=CAE",
+        width: 1,
+        height: 1,
+        static: true,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const element2 = await axios.post(
+      `${BACKEND_URL}/api/v1/admin/element`,
+
+      {
+        imageUrl:
+          "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRCRca3wAR4zjPPTzeIY9rSwbbqB6bB2hVkoTXN4eerXOIkJTG1GpZ9ZqSGYafQPToWy_JTcmV5RHXsAsWQC3tKnMlH_CsibsSZ5oJtbakq&usqp=CAE",
+        width: 1,
+        height: 1,
+        static: true,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    element1Id = element1.id;
+    element2Id = element2.id;
+
+    ///creating Maps
+    const map = await axios.post(`${BACKEND_URL}/api/v1/admin/map`, {
+      thumbnail: "https://thumbnail.com/a.png",
+      dimensions: "100x200",
+      name: "100 person interview room",
+      defaultElements: [
+        {
+          elementId: element1Id,
+          x: 20,
+          y: 20,
+        },
+        {
+          elementId: element1Id,
+          x: 18,
+          y: 20,
+        },
+        {
+          elementId: element2Id,
+          x: 19,
+          y: 20,
+        },
+        {
+          elementId: element2Id,
+          x: 19,
+          y: 20,
+        },
+      ],
+    });
+
+    mapId = map.id;
+  });
+});
