@@ -225,7 +225,9 @@ describe("Space avatar information", () => {
   let mapId;
   let element1Id;
   let element2Id;
-  let token;
+  let adminToken;
+  let adminId;
+  let userToken;
   let userId;
 
   beforeAll(async () => {
@@ -245,14 +247,36 @@ describe("Space avatar information", () => {
       type: "admin",
     });
 
-    userId = signUpResponse.data.userId;
+    adminId = signUpResponse.data.userId;
 
     const response = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
       username,
       password,
     });
 
-    token = response.data.token;
+    adminToken = response.data.token;
+
+    //
+    const userSignUpResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/signup`,
+      {
+        username,
+        password,
+        type: "admin",
+      }
+    );
+
+    userId = signUpResponse.data.userId;
+
+    const userSigninResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/signin`,
+      {
+        username,
+        password,
+      }
+    );
+
+    userToken = response.data.token;
 
     const element1 = await axios.post(
       `${BACKEND_URL}/api/v1/admin/element`,
@@ -266,7 +290,7 @@ describe("Space avatar information", () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          authorization: `Bearer ${adminToken}`,
         },
       }
     );
@@ -283,7 +307,7 @@ describe("Space avatar information", () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          authorization: `Bearer ${adminToken}`,
         },
       }
     );
@@ -323,11 +347,13 @@ describe("Space avatar information", () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          authorization: `Bearer ${adminToken}`,
         },
       }
     );
 
     mapId = map.id;
   });
+
+  //test(1)
 });
