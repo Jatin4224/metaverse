@@ -292,33 +292,41 @@ describe("Space avatar information", () => {
     element2Id = element2.id;
 
     ///creating Maps
-    const map = await axios.post(`${BACKEND_URL}/api/v1/admin/map`, {
-      thumbnail: "https://thumbnail.com/a.png",
-      dimensions: "100x200",
-      name: "100 person interview room",
-      defaultElements: [
-        {
-          elementId: element1Id,
-          x: 20,
-          y: 20,
+    const map = await axios.post(
+      `${BACKEND_URL}/api/v1/admin/map`,
+      {
+        thumbnail: "https://thumbnail.com/a.png",
+        dimensions: "100x200",
+        name: "100 person interview room",
+        defaultElements: [
+          {
+            elementId: element1Id,
+            x: 20,
+            y: 20,
+          },
+          {
+            elementId: element1Id,
+            x: 18,
+            y: 20,
+          },
+          {
+            elementId: element2Id,
+            x: 19,
+            y: 20,
+          },
+          {
+            elementId: element2Id,
+            x: 19,
+            y: 20,
+          },
+        ],
+      },
+      {
+        headers: {
+          authorization: `Bearer ${token}`,
         },
-        {
-          elementId: element1Id,
-          x: 18,
-          y: 20,
-        },
-        {
-          elementId: element2Id,
-          x: 19,
-          y: 20,
-        },
-        {
-          elementId: element2Id,
-          x: 19,
-          y: 20,
-        },
-      ],
-    });
+      }
+    );
 
     mapId = map.id;
   });
