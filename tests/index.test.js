@@ -15,6 +15,7 @@ function sum(a, b) {
 const BACKEND_URL = "http://localhost:3000";
 
 describe("Authentication", () => {
+  //test1
   test("User is able to signUp only once", async () => {
     const username = "jatin" + Math.random(); //jatin31327
     const password = 12345678;
@@ -39,6 +40,7 @@ describe("Authentication", () => {
     expect(updatedResponse.statusCode).toBe(400);
   });
 
+  //test2
   test("Signup Request failes if the username is empty", async () => {
     const username = `Jatin-${Math.random()}`;
     const password = "123456";
@@ -50,8 +52,8 @@ describe("Authentication", () => {
     expect(response.statusCode).toBe(400);
   });
 
-  //for singin endpoints
-
+  //for signin endpoints
+  //test 3
   test("Signin succeeds if the username and password are correct", async () => {
     const username = `jatin-${Math.random()}`;
     const password = "123456";
@@ -69,7 +71,7 @@ describe("Authentication", () => {
     expect(response.statusCode).toBe(200);
     expect(response.body.token).toBeDefined();
   });
-
+  //test4
   test("SignIn fails if the username and password are incorrect", async () => {
     const username = `jatin-${Math.random()}`;
     const password = 123456;
@@ -159,5 +161,62 @@ describe("User metadata endpoints", () => {
       avatarId,
     });
     expect(response.statusCode).toBe(200);
+  });
+});
+
+describe("User avatar information", () => {
+  let avatarId;
+  let token;
+  let userId;
+  beforeAll(async () => {
+    const username = `jatin-${Math.random()}`;
+    const password = "123456";
+
+    //getting userID
+    const signUpResponse = await axios.post(`${BACKEND_URL}/api/v1/signup`, {
+      username,
+      password,
+      type: "admin",
+    });
+
+    userId = signUpResponse.data.userId;
+
+    const response = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
+      username,
+      password,
+    });
+
+    token = response.data.token;
+
+    //getting avatar id
+
+    const avatarResponse = await axios.post(`${BACKEND_URL}/api/v1/avatar`, {
+      imageUrl:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm3RFDZM21teuCMFYx_AROjt-AzUwDBROFww&s",
+      name: "Timmy",
+    });
+
+    avatarId = avatarResponse.data.avatarId;
+  });
+
+  //test(1)
+  test("Get back avatar information for  a user", async () => {
+    const response = await axios.get(
+      `${BACKEND_URL}/api/v1/user/metadata/bulk?ids=[${userId}]`
+    );
+
+    expect(response.data.avatars.length).toBe(1);
+    //     The avatars property should be an array, and the test expects it to have a length of 1, indicating that there is exactly one avatar entry returned for the user.
+    // If the avatars array length is not 1, the test will fail.
+  });
+
+  //test(2)
+  test("Available avatar lists the recenlty created avatar", async () => {
+    const response = await axios.post(`${BACKEND_URL}/api/v1/avatars`);
+    expect(response.data.avatars.length.not.toBe(0));
+
+    const currentAvatar = response.data.avatars.find((x) => x.id == avatarId);
+    expect(currentAvatar).toBeDefined();
+    //we not need token here before both this endpoints are authenticated
   });
 });
