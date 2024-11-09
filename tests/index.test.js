@@ -1,8 +1,8 @@
 const { default: axios } = require("axios");
 
-function sum(a, b) {
-  return a + b;
-}
+// function sum(a, b) {
+//   return a + b;
+// }
 
 // test("adds 1 + 2 to equal 3", () => {
 //   let ans = sum(1, 2);
@@ -260,9 +260,9 @@ describe("Space avatar information", () => {
     const userSignUpResponse = await axios.post(
       `${BACKEND_URL}/api/v1/signup`,
       {
-        username,
+        username: username + "-user",
         password,
-        type: "admin",
+        type: "user",
       }
     );
 
@@ -271,7 +271,7 @@ describe("Space avatar information", () => {
     const userSigninResponse = await axios.post(
       `${BACKEND_URL}/api/v1/signin`,
       {
-        username,
+        username: username + "-user",
         password,
       }
     );
@@ -505,5 +505,215 @@ describe("Space avatar information", () => {
     );
     expect(response.data.spaces.length).toBe(1);
     expect(filteredSpace).toBeDefined();
+  });
+});
+
+describe("Arena endpoints", () => {
+  let mapId;
+  let element1Id;
+  let element2Id;
+  let adminToken;
+  let adminId;
+  let userToken;
+  let userId;
+  let spaceId;
+
+  beforeAll(async () => {
+    const username = `jatin-${Math.random()}`;
+    const password = "123456";
+
+    await axios.post(`${BACKEND_URL}/api/v1/signup`, {
+      username,
+      password,
+      type: "admin",
+    });
+
+    //getting userID
+    const signUpResponse = await axios.post(`${BACKEND_URL}/api/v1/signup`, {
+      username,
+      password,
+      type: "admin",
+    });
+
+    adminId = signUpResponse.data.userId;
+
+    const response = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
+      username: username,
+      password,
+    });
+
+    adminToken = response.data.token;
+
+    //
+    const userSignUpResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/signup`,
+      {
+        username: username + "-user",
+        password,
+        type: "user",
+      }
+    );
+
+    userId = signUpResponse.data.userId;
+
+    const userSigninResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/signin`,
+      {
+        username: username + "-user",
+        password,
+      }
+    );
+
+    userToken = response.data.token;
+
+    const element1 = await axios.post(
+      `${BACKEND_URL}/api/v1/admin/element`,
+
+      {
+        imageUrl:
+          "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRCRca3wAR4zjPPTzeIY9rSwbbqB6bB2hVkoTXN4eerXOIkJTG1GpZ9ZqSGYafQPToWy_JTcmV5RHXsAsWQC3tKnMlH_CsibsSZ5oJtbakq&usqp=CAE",
+        width: 1,
+        height: 1,
+        static: true,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${adminToken}`,
+        },
+      }
+    );
+
+    const element2 = await axios.post(
+      `${BACKEND_URL}/api/v1/admin/element`,
+
+      {
+        imageUrl:
+          "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRCRca3wAR4zjPPTzeIY9rSwbbqB6bB2hVkoTXN4eerXOIkJTG1GpZ9ZqSGYafQPToWy_JTcmV5RHXsAsWQC3tKnMlH_CsibsSZ5oJtbakq&usqp=CAE",
+        width: 1,
+        height: 1,
+        static: true,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${adminToken}`,
+        },
+      }
+    );
+
+    element1Id = element1.id;
+    element2Id = element2.id;
+
+    ///creating Maps
+    const map = await axios.post(
+      `${BACKEND_URL}/api/v1/admin/map`,
+      {
+        thumbnail: "https://thumbnail.com/a.png",
+        dimensions: "100x200",
+        name: "100 person interview room",
+        defaultElements: [
+          {
+            elementId: element1Id,
+            x: 20,
+            y: 20,
+          },
+          {
+            elementId: element1Id,
+            x: 18,
+            y: 20,
+          },
+          {
+            elementId: element2Id,
+            x: 19,
+            y: 20,
+          },
+          {
+            elementId: element2Id,
+            x: 19,
+            y: 20,
+          },
+        ],
+      },
+      {
+        headers: {
+          authorization: `Bearer ${adminToken}`,
+        },
+      }
+    );
+
+    mapId = map.id;
+    //creating space
+
+    const space = await axios.post(
+      `${BACKEND_URL}/api/v1`,
+      {
+        name: "Test",
+        dimensions: "100x200",
+        mapId: mapId,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${userToken}`,
+        },
+      }
+    );
+
+    spaceId = space.spaceId;
+  });
+
+  //test(1)
+  test("Incorrect spaceId returns a 400", async () => {
+    const response = await axios.get(`${BACKEND_URL}/api/v1/space/123Kasdk01`);
+    expect(response.statusCode).toBe(400);
+  });
+
+  test("correct spaceId returns all the elements", async () => {
+    const response = await axios.get(`${BACKEND_URL}/api/v1/space/${spaceId}`);
+    expect(response.data.dimensions).toBe("100x200");
+    expect(response.data.elements.length).toBe(3);
+  });
+
+  test("Delete endpoint is able to delete an element", async () => {
+    const response = await axios.get(`${BACKEND_URL}/api/v1/space/${spaceId}`);
+
+    await axios.delete(`${BACKEND_URL}/api/v1/space/element`, {
+      spaceId: spaceId,
+      elementId: response.data.elements[0].id,
+    });
+
+    const newResponse = await axios.get(
+      `${BACKEND_URL}/api/v1/space/${spaceId}`
+    );
+
+    expect(newResponse.data.elements.length).toBe(2);
+  });
+
+  test("Delete endpoint is able to delete an element", async () => {
+    const response = await axios.get(`${BACKEND_URL}/api/v1/space/${spaceId}`);
+
+    await axios.delete(`${BACKEND_URL}/api/v1/space/element`, {
+      spaceId: spaceId,
+      elementId: response.data.elements[0].id,
+    });
+
+    const newResponse = await axios.get(
+      `${BACKEND_URL}/api/v1/space/${spaceId}`
+    );
+
+    expect(newResponse.data.elements.length).toBe(2);
+  });
+
+  test("Adding an element fails if the element lies outiside the dimensions ", async () => {
+    await axios.post(`${BACKEND_URL}/api/v1/space/element`, {
+      elementId: element1Id,
+      spaceId: spaceId,
+      x: 50,
+      y: 20,
+    });
+
+    const newResponse = await axios.get(
+      `${BACKEND_URL}/api/v1/space/${spaceId}`
+    );
+
+    expect(newResponse.data.elements.length).toBe(3);
   });
 });
