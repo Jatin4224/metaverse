@@ -357,47 +357,110 @@ describe("Space avatar information", () => {
 
   //test(1)
   test("User is able to create a space", async () => {
-    const response = await axios.post(`${BACKEND_URL}/api/v1/space`, {
-      name: "Test",
-      dimensions: "100x200",
-      mapId: mapId,
-    });
+    const response = await axios.post(
+      `${BACKEND_URL}/api/v1/space`,
+      {
+        name: "Test",
+        dimensions: "100x200",
+        mapId: mapId,
+      },
+      {
+        header: {
+          authorization: `Bearer ${userToken}`,
+        },
+      }
+    );
 
     expect(response.spaceId).toBeDefined();
   });
 
   //test(2)
   test("User is able to create a space without mapId (empty space)", async () => {
-    const response = await axios.post(`${BACKEND_URL}/api/v1/space`, {
-      name: "Test",
-      dimensions: "100x200",
-    });
+    const response = await axios.post(
+      `${BACKEND_URL}/api/v1/space`,
+      {
+        name: "Test",
+        dimensions: "100x200",
+      },
+      {
+        header: {
+          authorization: `Bearer ${userToken}`,
+        },
+      }
+    );
 
     expect(response.spaceId).toBeDefined();
   });
 
   test("User is not able to create a space without mapId and dimensions", async () => {
-    const response = await axios.post(`${BACKEND_URL}/api/v1/space`, {
-      name: "Test",
-    });
+    const response = await axios.post(
+      `${BACKEND_URL}/api/v1/space`,
+      {
+        name: "Test",
+      },
+      {
+        header: {
+          authorization: `Bearer ${userToken}`,
+        },
+      }
+    );
 
     expect(response.statusCode).toBe(400);
   });
 
   test("User is not able to delete a space that doesnt exist", async () => {
     const response = await axios.post(
-      `${BACKEND_URL}/api/v1/space/randomIdDoesntExist`
+      `${BACKEND_URL}/api/v1/space/randomIdDoesntExist`,
+      {
+        header: {
+          authorization: `Bearer ${userToken}`,
+        },
+      }
     );
 
     expect(response.statusCode).toBe(400);
   });
 
   test("User is able to delete a space that does exist", async () => {
-    const response = await axios.post(`${BACKEND_URL}/api/v1/space`, {
-      name: "Test",
-      dimensions: "100x200",
-    });
+    const response = await axios.post(
+      `${BACKEND_URL}/api/v1/space`,
+      {
+        name: "Test",
+        dimensions: "100x200",
+      },
+      {
+        header: {
+          authorization: `Bearer ${userToken}`,
+        },
+      }
+    );
 
+    const deleteResponse = await axios.delete(
+      `${BACKEND_URL}/api/v1/space${response.data.spaceId}`,
+      {
+        header: {
+          authorization: `Bearer ${userToken}`,
+        },
+      }
+    );
+
+    expect(deleteResponse.statusCode).toBe(200);
+  });
+
+  test("User is not able to delete a space created by another user", async () => {
+    const response = await axios.post(
+      `${BACKEND_URL}/api/v1/space`,
+      {
+        name: "Test",
+        dimensions: "100x200",
+      },
+      {
+        header: {
+          authorization: `Bearer ${userToken}`,
+        },
+      }
+    );
+    //
     const deleteResponse = await axios.delete(
       `${BACKEND_URL}/api/v1/space${response.data.spaceId}`,
       {
@@ -407,6 +470,40 @@ describe("Space avatar information", () => {
       }
     );
 
-    expect(deleteResponse.statusCode).toBe(200);
+    expect(deleteResponse.statusCode).toBe(400);
+  });
+
+  test("Admin has no spaces intially", async () => {
+    const response = await axios.get(`${BACKEND_URL}/api/v1/space/all`, {
+      header: {
+        authorization: `Bearer ${userToken}`,
+      },
+    });
+    expect(response.data.spaces.length).toBe(0);
+  });
+
+  test("Admin has no spaces intially", async () => {
+    const spaceCreateResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/space/all`,
+      {
+        name: "Test",
+        dimensions: "100x200",
+      },
+      {
+        header: {
+          authorization: `Bearer ${userToken}`,
+        },
+      }
+    );
+    const response = await axios.get(`${BACKEND_URL}/api/v1/space/all`, {
+      header: {
+        authorization: `Bearer ${userToken}`,
+      },
+    });
+    const filteredSpace = response.data.spaces.find(
+      (x) => x.id == spaceCreateResponse.spaceId
+    );
+    expect(response.data.spaces.length).toBe(1);
+    expect(filteredSpace).toBeDefined();
   });
 });
