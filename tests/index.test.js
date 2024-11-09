@@ -399,9 +399,14 @@ describe("Space avatar information", () => {
     });
 
     const deleteResponse = await axios.delete(
-      `${BACKEND_URL}/api/v1/space${response.data.spaceId}`
+      `${BACKEND_URL}/api/v1/space${response.data.spaceId}`,
+      {
+        header: {
+          authorization: `Bearer ${adminToken}`,
+        },
+      }
     );
 
-    expect(response.statusCode).toBe(200);
+    expect(deleteResponse.statusCode).toBe(200);
   });
 });
