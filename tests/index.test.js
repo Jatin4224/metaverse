@@ -662,12 +662,20 @@ describe("Arena endpoints", () => {
 
   //test(1)
   test("Incorrect spaceId returns a 400", async () => {
-    const response = await axios.get(`${BACKEND_URL}/api/v1/space/123Kasdk01`);
+    const response = await axios.get(`${BACKEND_URL}/api/v1/space/123Kasdk01`, {
+      headers: {
+        authorization: `Bearer ${userToken}`,
+      },
+    });
     expect(response.statusCode).toBe(400);
   });
 
   test("correct spaceId returns all the elements", async () => {
-    const response = await axios.get(`${BACKEND_URL}/api/v1/space/${spaceId}`);
+    const response = await axios.get(`${BACKEND_URL}/api/v1/space/${spaceId}`,
+      headers: {
+        authorization: `Bearer ${userToken}`,
+      },
+    );
     expect(response.data.dimensions).toBe("100x200");
     expect(response.data.elements.length).toBe(3);
   });
@@ -678,31 +686,37 @@ describe("Arena endpoints", () => {
     await axios.delete(`${BACKEND_URL}/api/v1/space/element`, {
       spaceId: spaceId,
       elementId: response.data.elements[0].id,
-    });
+    },{
+    headers: {
+      authorization: `Bearer ${userToken}`,
+    }}
+  );
 
     const newResponse = await axios.get(
-      `${BACKEND_URL}/api/v1/space/${spaceId}`
+      `${BACKEND_URL}/api/v1/space/${spaceId}`, {headers: {
+        authorization: `Bearer ${userToken}`,
+       } },
     );
 
     expect(newResponse.data.elements.length).toBe(2);
   });
 
-  test("Delete endpoint is able to delete an element", async () => {
-    const response = await axios.get(`${BACKEND_URL}/api/v1/space/${spaceId}`);
-
-    await axios.delete(`${BACKEND_URL}/api/v1/space/element`, {
+  test("Adding element fails if the element lies outside the dimensions", async () => {
+    await axios.post(`${BACKEND_URL}/api/v1/space/element`, {
+      elementId: element1Id,
       spaceId: spaceId,
-      elementId: response.data.elements[0].id,
+      x: 50000,
+      y: 200000,
+    },{
+      headers: {
+        authorization: `Bearer ${userToken}`,
+      },
     });
 
-    const newResponse = await axios.get(
-      `${BACKEND_URL}/api/v1/space/${spaceId}`
-    );
-
-    expect(newResponse.data.elements.length).toBe(2);
+    expect(newResponse.data.elements.length).toBe(400);
   });
 
-  test("Adding an element fails if the element lies outiside the dimensions ", async () => {
+  test("Adding element works as expected", async () => {
     await axios.post(`${BACKEND_URL}/api/v1/space/element`, {
       elementId: element1Id,
       spaceId: spaceId,
@@ -711,9 +725,13 @@ describe("Arena endpoints", () => {
     });
 
     const newResponse = await axios.get(
-      `${BACKEND_URL}/api/v1/space/${spaceId}`
+      `${BACKEND_URL}/api/v1/space/${spaceId}`,{
+        headers: {
+          authorization: `Bearer ${userToken}`,
+        },
+      }
     );
 
-    expect(newResponse.data.elements.length).toBe(3);
+    expect(newResponse.data.elements.length).toBe(2);
   });
 });
