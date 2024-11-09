@@ -735,3 +735,69 @@ describe("Arena endpoints", () => {
     expect(newResponse.data.elements.length).toBe(2);
   });
 });
+
+describe("Create an element", () => {
+  let adminToken;
+  let adminId;
+  let userToken;
+  let userId;
+  b
+
+  beforeAll(async () => {
+    const username = `jatin-${Math.random()}`;
+    const password = "123456";
+
+    await axios.post(`${BACKEND_URL}/api/v1/signup`, {
+      username,
+      password,
+      type: "admin",
+    });
+
+    //getting userID
+    const signUpResponse = await axios.post(`${BACKEND_URL}/api/v1/signup`, {
+      username,
+      password,
+      type: "admin",
+    });
+
+    adminId = signUpResponse.data.userId;
+
+    const response = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
+      username: username,
+      password,
+    });
+
+    adminToken = response.data.token;
+
+    //
+    const userSignUpResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/signup`,
+      {
+        username: username + "-user",
+        password,
+        type: "user",
+      }
+    );
+
+    userId = signUpResponse.data.userId;
+
+    const userSigninResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/signin`,
+      {
+        username: username + "-user",
+        password,
+      }
+    );
+
+    userToken = userSigninResponse.data.token;
+
+    
+
+
+  });  
+
+
+  test("User is not able to hit admin Endpoints",() => {
+
+  })
+})
