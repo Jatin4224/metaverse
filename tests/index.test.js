@@ -938,7 +938,6 @@ describe("Admin Endpoints", () => {
     expect(avatarResponse.statusCode).toBe(200);
   });
 
-  //test3-Admin is able to update a space
   test("Admin is able to update the imageUrl for an element", async () => {
     const elementResponse = await axios.post(
       `${BACKEND_URL}/api/v1/admin/element`,
