@@ -229,7 +229,7 @@ describe("User avatar information", () => {
   });
 });
 
-describe("Space avatar information", () => {
+describe("Space information", () => {
   let mapId;
   let element1Id;
   let element2Id;
@@ -286,7 +286,7 @@ describe("Space avatar information", () => {
 
     userToken = response.data.token;
 
-    const element1 = await axios.post(
+    const element1Response = await axios.post(
       `${BACKEND_URL}/api/v1/admin/element`,
 
       {
@@ -303,7 +303,7 @@ describe("Space avatar information", () => {
       }
     );
 
-    const element2 = await axios.post(
+    const element2Response = await axios.post(
       `${BACKEND_URL}/api/v1/admin/element`,
 
       {
@@ -320,11 +320,11 @@ describe("Space avatar information", () => {
       }
     );
 
-    element1Id = element1.id;
-    element2Id = element2.id;
+    element1Id = element1Response.data.id;
+    element2Id = element2Response.data.id;
 
     ///creating Maps
-    const map = await axios.post(
+    const mapResponse = await axios.post(
       `${BACKEND_URL}/api/v1/admin/map`,
       {
         thumbnail: "https://thumbnail.com/a.png",
@@ -360,7 +360,7 @@ describe("Space avatar information", () => {
       }
     );
 
-    mapId = map.id;
+    mapId = mapResponse.id;
   });
 
   //test(1)
@@ -397,7 +397,7 @@ describe("Space avatar information", () => {
       }
     );
 
-    expect(response.spaceId).toBeDefined();
+    expect(response.data.spaceId).toBeDefined();
   });
 
   test("User is not able to create a space without mapId and dimensions", async () => {
@@ -574,7 +574,7 @@ describe("Arena endpoints", () => {
 
     userToken = response.data.token;
 
-    const element1 = await axios.post(
+    const element1Response = await axios.post(
       `${BACKEND_URL}/api/v1/admin/element`,
 
       {
@@ -591,7 +591,7 @@ describe("Arena endpoints", () => {
       }
     );
 
-    const element2 = await axios.post(
+    const element2Response = await axios.post(
       `${BACKEND_URL}/api/v1/admin/element`,
 
       {
@@ -608,11 +608,11 @@ describe("Arena endpoints", () => {
       }
     );
 
-    element1Id = element1.id;
-    element2Id = element2.id;
+    element1Id = element1Response.data.id;
+    element2Id = element2Response.data.id;
 
     ///creating Maps
-    const map = await axios.post(
+    const mapResponse = await axios.post(
       `${BACKEND_URL}/api/v1/admin/map`,
       {
         thumbnail: "https://thumbnail.com/a.png",
@@ -648,10 +648,10 @@ describe("Arena endpoints", () => {
       }
     );
 
-    mapId = map.id;
+    mapId = mapResponse.id;
     //creating space
 
-    const space = await axios.post(
+    const spaceResponse = await axios.post(
       `${BACKEND_URL}/api/v1`,
       {
         name: "Test",
@@ -665,7 +665,7 @@ describe("Arena endpoints", () => {
       }
     );
 
-    spaceId = space.spaceId;
+    spaceId = spaceResponse.data.spaceId;
   });
 
   //test(1)
@@ -936,5 +936,40 @@ describe("Admin Endpoints", () => {
     expect(elementResponse.statusCode).toBe(200);
     expect(mapResponse.statusCode).toBe(200);
     expect(avatarResponse.statusCode).toBe(200);
+  });
+
+  //test3-Admin is able to update a space
+  test("Admin is able to update the imageUrl for an element", async () => {
+    const elementResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/admin/element`,
+
+      {
+        imageUrl:
+          "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRCRca3wAR4zjPPTzeIY9rSwbbqB6bB2hVkoTXN4eerXOIkJTG1GpZ9ZqSGYafQPToWy_JTcmV5RHXsAsWQC3tKnMlH_CsibsSZ5oJtbakq&usqp=CAE",
+        width: 1,
+        height: 1,
+        static: true,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${adminToken}`,
+        },
+      }
+    );
+
+    const updateElementResponse = await axios.put(
+      `${BACKEND_URL}/api/v1/admin/element/${elementResponse.data.id}`,
+      {
+        imageUrl:
+          "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRCRca3wAR4zjPPTzeIY9rSwbbqB6bB2hVkoTXN4eerXOIkJTG1GpZ9ZqSGYafQPToWy_JTcmV5RHXsAsWQC3tKnMlH_CsibsSZ5oJtbakq&usqp=CAE",
+      },
+      {
+        headers: {
+          authorization: `Bearer ${adminToken}`,
+        },
+      }
+    );
+
+    expect(updateElementResponse.statusCode).toBe(200);
   });
 });
