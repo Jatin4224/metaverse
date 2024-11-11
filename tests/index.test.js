@@ -811,6 +811,8 @@ describe("Admin Endpoints", () => {
     userToken = userSigninResponse.data.token;
   });
 
+  //test1 -User is not able to hit admin Endpoints
+
   test("User is not able to hit admin Endpoints", async () => {
     //creating element
     const elementResponse = await axios.post(
@@ -879,5 +881,60 @@ describe("Admin Endpoints", () => {
     expect(mapResponse.statusCode).toBe(403);
     expect(avatarResponse.statusCode).toBe(403);
     expect(updateElementResponse.statusCode).toBe(403);
+  });
+
+  //test2-Admin is able to hit a admin Endpoints
+  test("admin is  able to hit admin Endpoints", async () => {
+    //creating element
+    const elementResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/admin/element`,
+
+      {
+        imageUrl:
+          "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRCRca3wAR4zjPPTzeIY9rSwbbqB6bB2hVkoTXN4eerXOIkJTG1GpZ9ZqSGYafQPToWy_JTcmV5RHXsAsWQC3tKnMlH_CsibsSZ5oJtbakq&usqp=CAE",
+        width: 1,
+        height: 1,
+        static: true,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${adminToken}`,
+        },
+      }
+    );
+    ///creating Maps
+    const mapResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/admin/map`,
+      {
+        thumbnail: "https://thumbnail.com/a.png",
+        dimensions: "100x200",
+        defaultElements: [],
+      },
+      {
+        headers: {
+          authorization: `Bearer ${adminToken}`,
+        },
+      }
+    );
+
+    //create an Avatar
+
+    const avatarResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/admin/avatar`,
+      {
+        imageUrl:
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm3RFDZM21teuCMFYx_AROjt-AzUwDBROFww&s",
+        name: "Timmy",
+      },
+      {
+        headers: {
+          authorization: `Bearer ${adminToken}`,
+        },
+      }
+    );
+
+    expect(elementResponse.statusCode).toBe(200);
+    expect(mapResponse.statusCode).toBe(200);
+    expect(avatarResponse.statusCode).toBe(200);
   });
 });
