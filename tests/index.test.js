@@ -671,11 +671,11 @@ describe("Arena endpoints", () => {
   });
 
   test("correct spaceId returns all the elements", async () => {
-    const response = await axios.get(`${BACKEND_URL}/api/v1/space/${spaceId}`,
+    const response = await axios.get(`${BACKEND_URL}/api/v1/space/${spaceId}`, {
       headers: {
         authorization: `Bearer ${userToken}`,
       },
-    );
+    });
     expect(response.data.dimensions).toBe("100x200");
     expect(response.data.elements.length).toBe(3);
   });
@@ -683,35 +683,46 @@ describe("Arena endpoints", () => {
   test("Delete endpoint is able to delete an element", async () => {
     const response = await axios.get(`${BACKEND_URL}/api/v1/space/${spaceId}`);
 
-    await axios.delete(`${BACKEND_URL}/api/v1/space/element`, {
-      spaceId: spaceId,
-      elementId: response.data.elements[0].id,
-    },{
-    headers: {
-      authorization: `Bearer ${userToken}`,
-    }}
-  );
+    await axios.delete(
+      `${BACKEND_URL}/api/v1/space/element`,
+      {
+        spaceId: spaceId,
+        elementId: response.data.elements[0].id,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${userToken}`,
+        },
+      }
+    );
 
     const newResponse = await axios.get(
-      `${BACKEND_URL}/api/v1/space/${spaceId}`, {headers: {
-        authorization: `Bearer ${userToken}`,
-       } },
+      `${BACKEND_URL}/api/v1/space/${spaceId}`,
+      {
+        headers: {
+          authorization: `Bearer ${userToken}`,
+        },
+      }
     );
 
     expect(newResponse.data.elements.length).toBe(2);
   });
 
   test("Adding element fails if the element lies outside the dimensions", async () => {
-    await axios.post(`${BACKEND_URL}/api/v1/space/element`, {
-      elementId: element1Id,
-      spaceId: spaceId,
-      x: 50000,
-      y: 200000,
-    },{
-      headers: {
-        authorization: `Bearer ${userToken}`,
+    await axios.post(
+      `${BACKEND_URL}/api/v1/space/element`,
+      {
+        elementId: element1Id,
+        spaceId: spaceId,
+        x: 50000,
+        y: 200000,
       },
-    });
+      {
+        headers: {
+          authorization: `Bearer ${userToken}`,
+        },
+      }
+    );
 
     expect(newResponse.data.elements.length).toBe(400);
   });
@@ -725,7 +736,8 @@ describe("Arena endpoints", () => {
     });
 
     const newResponse = await axios.get(
-      `${BACKEND_URL}/api/v1/space/${spaceId}`,{
+      `${BACKEND_URL}/api/v1/space/${spaceId}`,
+      {
         headers: {
           authorization: `Bearer ${userToken}`,
         },
@@ -741,7 +753,7 @@ describe("Create an element", () => {
   let adminId;
   let userToken;
   let userId;
-  b
+  b;
 
   beforeAll(async () => {
     const username = `jatin-${Math.random()}`;
@@ -790,14 +802,7 @@ describe("Create an element", () => {
     );
 
     userToken = userSigninResponse.data.token;
+  });
 
-    
-
-
-  });  
-
-
-  test("User is not able to hit admin Endpoints",() => {
-
-  })
-})
+  test("User is not able to hit admin Endpoints", () => {});
+});
