@@ -13,12 +13,15 @@ const { default: axios } = require("axios");
 
 //hardcoded backend url - we are doing test driven dev in which we will write test first nd backend later.
 const BACKEND_URL = "http://localhost:3000";
+const WS_URL = "ws://localhost:3001"
+
+
 
 describe("Authentication", () => {
   //test1
   test("User is able to signUp only once", async () => {
-    const username = "jatin" + Math.random(); //jatin31327
-    const password = 12345678;
+    const username = `Jatin-${Math.random()}`;
+    const password = "123456";
 
     const response = await axios.post(`${BACKEND_URL}/api/v1/signup`, {
       username,
@@ -55,7 +58,7 @@ describe("Authentication", () => {
   //for signin endpoints
   //test 3
   test("Signin succeeds if the username and password are correct", async () => {
-    const username = `jatin-${Math.random()}`;
+    const username = `Jatin-${Math.random()}`;
     const password = "123456";
 
     await axios.post(`${BACKEND_URL}/api/v1/signup`, {
@@ -73,8 +76,8 @@ describe("Authentication", () => {
   });
   //test4
   test("SignIn fails if the username and password are incorrect", async () => {
-    const username = `jatin-${Math.random()}`;
-    const password = 123456;
+    const username = `Jatin-${Math.random()}`;
+    const password = "123456";
 
     await axios.post(`${BACKEND_URL}/api/v1/signup`);
 
@@ -96,7 +99,7 @@ describe("User metadata endpoints", () => {
   let avatarId = "";
 
   beforeAll(async () => {
-    const username = `jatin-${Math.random()}`;
+    const username = `Jatin-${Math.random()}`;
     const password = "123456";
 
     await axios.post(`${BACKEND_URL}/api/v1/signup`, {
@@ -239,7 +242,7 @@ describe("Space information", () => {
   let userId;
 
   beforeAll(async () => {
-    const username = `jatin-${Math.random()}`;
+    const username = `Jatin-${Math.random()}`;
     const password = "123456";
 
     await axios.post(`${BACKEND_URL}/api/v1/signup`, {
@@ -527,9 +530,8 @@ describe("Arena endpoints", () => {
   let spaceId;
 
   beforeAll(async () => {
-    const username = `jatin-${Math.random()}`;
+    const username = `Jatin-${Math.random()}`;
     const password = "123456";
-
     await axios.post(`${BACKEND_URL}/api/v1/signup`, {
       username,
       password,
@@ -763,7 +765,7 @@ describe("Admin Endpoints", () => {
   let userId;
 
   beforeAll(async () => {
-    const username = `jatin-${Math.random()}`;
+    const username = `Jatin-${Math.random()}`;
     const password = "123456";
 
     await axios.post(`${BACKEND_URL}/api/v1/signup`, {
@@ -970,5 +972,182 @@ describe("Admin Endpoints", () => {
     );
 
     expect(updateElementResponse.statusCode).toBe(200);
+  });
+});
+
+describe("webSocket tests", () => {
+  let adminToken;
+  let adminUserId;
+  let userToken;
+  let userId;
+  let mapId;
+  let element1Id;
+  let element2Id;
+  let spaceId;
+ let ws1;
+ let ws2;
+ let ws1Messages = []
+ let ws2Messages = []
+
+  function setupHTTP() {
+    //1)signin and signup  admin nd user
+    const username = `Jatin-${Math.random()}`;
+    const password = "123456";
+
+    const adminSignupResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/signup`,
+      {
+        username,
+        password,
+        role: "admin",
+      }
+    );
+
+    const adminSigninResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/signin`,
+      {
+        username,
+        password,
+      }
+    );
+
+    adminUserId = adminSignupResponse.data.userId;
+    adminToken = adminSigninResponse.data.token;
+
+    const userSignupResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/signup`,
+      {
+        username: username + `-user`,
+        password,
+      }
+    );
+
+    const userSigninResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/signup`,
+      {
+        username: username + `-user`,
+        password,
+      }
+    );
+
+    userId = userSignupResponse.data.userId;
+    userToken = userSigninResponse.data.token;
+
+    //element1 ,element 2, map , space
+
+    const element1Response = await axios.post(
+      `${BACKEND_URL}/api/v1/admin/element`,
+
+      {
+        imageUrl:
+          "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRCRca3wAR4zjPPTzeIY9rSwbbqB6bB2hVkoTXN4eerXOIkJTG1GpZ9ZqSGYafQPToWy_JTcmV5RHXsAsWQC3tKnMlH_CsibsSZ5oJtbakq&usqp=CAE",
+        width: 1,
+        height: 1,
+        static: true,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${adminToken}`,
+        },
+      }
+    );
+
+    const element2Response = await axios.post(
+      `${BACKEND_URL}/api/v1/admin/element`,
+
+      {
+        imageUrl:
+          "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRCRca3wAR4zjPPTzeIY9rSwbbqB6bB2hVkoTXN4eerXOIkJTG1GpZ9ZqSGYafQPToWy_JTcmV5RHXsAsWQC3tKnMlH_CsibsSZ5oJtbakq&usqp=CAE",
+        width: 1,
+        height: 1,
+        static: true,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${adminToken}`,
+        },
+      }
+    );
+
+    element1Id = element1Response.data.id;
+    element2Id = element2Response.data.id;
+
+    ///creating Maps
+    const mapResponse = await axios.post(
+      `${BACKEND_URL}/api/v1/admin/map`,
+      {
+        thumbnail: "https://thumbnail.com/a.png",
+        dimensions: "100x200",
+        name: "100 person interview room",
+        defaultElements: [
+          {
+            elementId: element1Id,
+            x: 20,
+            y: 20,
+          },
+          {
+            elementId: element1Id,
+            x: 18,
+            y: 20,
+          },
+          {
+            elementId: element2Id,
+            x: 19,
+            y: 20,
+          },
+          {
+            elementId: element2Id,
+            x: 19,
+            y: 20,
+          },
+        ],
+      },
+      {
+        headers: {
+          authorization: `Bearer ${adminToken}`,
+        },
+      }
+    );
+
+    mapId = mapResponse.id;
+    //creating space
+
+    const spaceResponse = await axios.post(
+      `${BACKEND_URL}/api/v1`,
+      {
+        name: "Test",
+        dimensions: "100x200",
+        mapId: mapId,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${userToken}`,
+        },
+      }
+    );
+
+    spaceId = spaceResponse.data.spaceId;
+  }
+
+
+  function setupWs() {
+  ws1 = new WebSocket(WS_URL);
+  ws2 = new WebSocket(WS_URL);
+ 
+
+  //we are waiting for ws to open and we are waiting and resolving promise when open 
+  await new Promise(r => {
+    ws1.onopen = r
+  })
+  await new Promise(r => {
+    ws2.onopen = r
+  })
+
+  ws1.onmessage = (event)=> {
+   
+  }
+  }
+  beforeAll(() => {
+    
   });
 });
